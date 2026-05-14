@@ -1,1276 +1,1107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>AURA — AI Media Studio</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
 <style>
-:root {
-  --bg: #060810;
-  --surface: #0c0e18;
-  --surface2: #12151f;
-  --surface3: #181c28;
-  --border: #1e2235;
-  --border2: #252a3a;
-  --img: #00e5c8;
-  --img-dim: rgba(0,229,200,0.12);
-  --vid: #f97316;
-  --vid-dim: rgba(249,115,22,0.12);
-  --voice: #818cf8;
-  --voice-dim: rgba(129,140,248,0.12);
-  --text: #e2e5f0;
-  --muted: #5a6075;
-  --muted2: #8892aa;
-  --white: #ffffff;
-  --red: #ef4444;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{
-  font-family:'DM Sans',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  overflow-x:hidden;
-}
-/* BG atmosphere */
-.bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-.bg-orbs span{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.07;animation:drift 12s ease-in-out infinite alternate}
-.bg-orbs span:nth-child(1){width:500px;height:500px;background:var(--img);top:-10%;left:-5%;animation-delay:0s}
-.bg-orbs span:nth-child(2){width:400px;height:400px;background:var(--voice);bottom:-5%;right:-5%;animation-delay:-4s}
-.bg-orbs span:nth-child(3){width:300px;height:300px;background:var(--vid);top:40%;left:40%;animation-delay:-8s}
-@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,20px) scale(1.1)}}
+  :root {
+    --bg: #07080d;
+    --surface: #0f1118;
+    --surface2: #161921;
+    --border: #1f2330;
+    --accent-img: #00e5c8;
+    --accent-vid: #ff5f57;
+    --accent-voice: #a78bfa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --card: #12151f;
+  }
 
-/* Noise */
-.noise{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.025;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 20px}
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-/* ─── HEADER ─── */
-header{
-  padding:24px 0;
-  display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid var(--border);margin-bottom:0
-}
-.logo{
-  font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:-0.02em;
-  background:linear-gradient(120deg,var(--img),var(--voice));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text
-}
-.logo-sub{font-family:'DM Sans',sans-serif;font-style:italic;font-weight:300;font-size:0.7rem;
-  -webkit-text-fill-color:var(--muted);color:var(--muted);margin-left:8px;vertical-align:middle}
-.header-right{display:flex;align-items:center;gap:10px}
-.pill{font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted2);
-  border:1px solid var(--border2);padding:4px 12px;border-radius:100px;background:var(--surface)}
+  /* Atmospheric background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 15% 20%, rgba(0,229,200,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 35% at 85% 80%, rgba(167,139,250,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, rgba(255,95,87,0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
 
-/* ─── API KEY SETUP BANNER ─── */
-.setup-banner{
-  background:linear-gradient(135deg,rgba(0,229,200,0.06),rgba(129,140,248,0.06));
-  border:1px solid var(--border2);border-radius:16px;padding:20px 24px;margin:24px 0;
-  display:flex;align-items:flex-start;gap:16px;
-}
-.setup-icon{font-size:1.4rem;flex-shrink:0;margin-top:2px}
-.setup-text h3{font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;color:var(--white);margin-bottom:4px}
-.setup-text p{font-size:0.8rem;color:var(--muted2);line-height:1.5}
-.setup-keys{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.key-input-wrap{display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px}
-.key-input-wrap label{font-size:0.68rem;color:var(--muted2);letter-spacing:0.06em;text-transform:uppercase}
-.key-row{display:flex;gap:6px}
-.key-input{
-  flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;
-  color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.82rem;padding:8px 12px;
-  outline:none;transition:border-color .2s;font-family:monospace
-}
-.key-input:focus{border-color:rgba(255,255,255,0.2)}
-.key-input::placeholder{color:var(--muted);font-family:'DM Sans',sans-serif}
-.key-save-btn{
-  background:var(--surface3);border:1px solid var(--border2);border-radius:8px;
-  color:var(--muted2);font-size:0.78rem;padding:8px 14px;cursor:pointer;
-  transition:all .2s;white-space:nowrap;font-family:'DM Sans',sans-serif
-}
-.key-save-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.15)}
-.key-save-btn.saved{color:var(--img);border-color:rgba(0,229,200,0.3)}
+  /* Noise overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
 
-/* ─── TABS ─── */
-.tabs-wrap{display:flex;justify-content:center;padding:28px 0 24px}
-.tabs{
-  display:inline-flex;gap:4px;background:var(--surface);
-  border:1px solid var(--border);border-radius:14px;padding:5px
-}
-.tab{
-  font-family:'DM Sans',sans-serif;font-size:0.87rem;font-weight:500;
-  padding:10px 24px;border-radius:10px;border:none;background:none;
-  color:var(--muted);cursor:pointer;transition:all .22s;display:flex;align-items:center;gap:7px
-}
-.tab:hover{color:var(--text)}
-.tab.t-img.on{background:var(--img-dim);color:var(--img);box-shadow:0 0 0 1px rgba(0,229,200,0.2)}
-.tab.t-vid.on{background:var(--vid-dim);color:var(--vid);box-shadow:0 0 0 1px rgba(249,115,22,0.2)}
-.tab.t-voice.on{background:var(--voice-dim);color:var(--voice);box-shadow:0 0 0 1px rgba(129,140,248,0.2)}
+  .container { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
 
-/* ─── PANELS ─── */
-.panel{display:none;animation:up .3s ease}
-.panel.on{display:block}
-@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  /* Header */
+  header {
+    padding: 28px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-@media(max-width:660px){.two-col{grid-template-columns:1fr}}
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--accent-img), var(--accent-voice));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 
-/* ─── CARD ─── */
-.card{
-  background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;
-}
-.card-title{
-  font-family:'Syne',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;
-  text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:8px
-}
-.card-title::after{content:'';flex:1;height:1px;background:var(--border)}
+  .logo span {
+    font-weight: 300;
+    font-family: 'DM Sans', sans-serif;
+    font-style: italic;
+    font-size: 0.75rem;
+    background: none;
+    -webkit-text-fill-color: var(--muted);
+    color: var(--muted);
+    margin-left: 8px;
+    vertical-align: middle;
+  }
 
-/* ─── STYLE CHIPS ─── */
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
-.chip{
-  font-size:0.72rem;padding:4px 11px;border-radius:100px;
-  border:1px solid var(--border2);color:var(--muted);cursor:pointer;
-  transition:all .18s;background:var(--surface2);user-select:none
-}
-.chip:hover{color:var(--text);border-color:rgba(255,255,255,0.15)}
-.chip.on-img{color:var(--img);border-color:rgba(0,229,200,0.35);background:rgba(0,229,200,0.07)}
-.chip.on-vid{color:var(--vid);border-color:rgba(249,115,22,0.35);background:rgba(249,115,22,0.07)}
-.chip.on-voice{color:var(--voice);border-color:rgba(129,140,248,0.35);background:rgba(129,140,248,0.07)}
+  .badge {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 100px;
+  }
 
-/* ─── TEXTAREA ─── */
-.ta-wrap{background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:13px 15px;margin-bottom:12px;transition:border-color .2s}
-.ta-wrap:focus-within{border-color:rgba(255,255,255,0.12)}
-textarea{
-  width:100%;background:none;border:none;outline:none;
-  color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;
-  resize:none;line-height:1.65;min-height:90px
-}
-textarea::placeholder{color:var(--muted)}
-.ta-footer{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
-.ta-count{font-size:0.72rem;color:var(--muted)}
-.ta-btn{
-  font-size:0.72rem;color:var(--muted);background:none;
-  border:1px solid var(--border2);border-radius:6px;padding:3px 10px;
-  cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif
-}
-.ta-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.15)}
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 60px 0 48px;
+  }
 
-/* ─── SELECTS GRID ─── */
-.selects{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
-.sel-group label{display:block;font-size:0.69rem;color:var(--muted);margin-bottom:4px;letter-spacing:0.04em}
-select{
-  width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;
-  color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.83rem;padding:8px 30px 8px 11px;
-  cursor:pointer;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%235a6075' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 10px center
-}
-select:focus{border-color:rgba(255,255,255,0.12)}
-select option{background:var(--surface2)}
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: #fff;
+    margin-bottom: 16px;
+  }
 
-/* ─── SLIDER ─── */
-.slider-group{margin-bottom:13px}
-.slider-label{display:flex;justify-content:space-between;font-size:0.7rem;color:var(--muted);margin-bottom:6px}
-input[type=range]{
-  width:100%;-webkit-appearance:none;appearance:none;height:3px;
-  border-radius:3px;background:var(--border2);outline:none;cursor:pointer
-}
-input[type=range].img-range::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--img);cursor:pointer}
-input[type=range].vid-range::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--vid);cursor:pointer}
-input[type=range].voice-range::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--voice);cursor:pointer}
+  .hero h1 em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--accent-img) 0%, var(--accent-voice) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 
-/* ─── GENERATE BUTTON ─── */
-.gen-btn{
-  width:100%;padding:14px;border:none;border-radius:12px;
-  font-family:'Syne',sans-serif;font-size:0.93rem;font-weight:700;letter-spacing:0.04em;
-  cursor:pointer;transition:all .22s;display:flex;align-items:center;justify-content:center;gap:8px;
-  position:relative;overflow:hidden
-}
-.gen-btn:disabled{opacity:0.5;cursor:not-allowed}
-.gen-btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:background .2s}
-.gen-btn:not(:disabled):hover::after{background:rgba(255,255,255,0.07)}
-.gen-btn:not(:disabled):active{transform:scale(0.98)}
-.gen-img{background:linear-gradient(135deg,#009e8c,var(--img));color:#021a17}
-.gen-vid{background:linear-gradient(135deg,#c45a0a,var(--vid));color:#1a0b00}
-.gen-voice{background:linear-gradient(135deg,#5b63b8,var(--voice));color:#08091a}
-.btn-spinner{
-  display:none;width:16px;height:16px;border:2px solid rgba(0,0,0,0.3);
-  border-top-color:rgba(0,0,0,0.8);border-radius:50%;animation:spin .7s linear infinite
-}
-@keyframes spin{to{transform:rotate(360deg)}}
+  .hero p {
+    color: var(--muted);
+    font-size: 1.05rem;
+    font-weight: 300;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
 
-/* ─── PREVIEW CARD ─── */
-.preview{
-  background:var(--surface2);border:1px solid var(--border);border-radius:14px;
-  position:relative;overflow:hidden;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;min-height:280px
-}
-.preview.sq{aspect-ratio:1}
-.preview.wd{aspect-ratio:16/9;min-height:unset}
-.preview.vt{min-height:220px}
-.preview-empty{text-align:center;padding:24px;pointer-events:none}
-.preview-empty .ei{font-size:2.5rem;opacity:0.18;display:block;margin-bottom:10px}
-.preview-empty p{color:var(--muted);font-size:0.8rem;line-height:1.6}
+  /* Tab nav */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px;
+    width: fit-content;
+    margin: 0 auto 40px;
+  }
 
-/* Shimmer */
-.shimmer{
-  display:none;position:absolute;inset:0;
-  background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);
-  background-size:200% 100%;animation:sh 1.4s infinite
-}
-.shimmer.on{display:block}
-@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .tab-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.22s ease;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+  }
 
-.progress-wrap{position:absolute;bottom:18px;left:20px;right:20px;display:none}
-.progress-wrap.on{display:block}
-.progress-label{font-size:0.72rem;color:var(--muted2);margin-bottom:6px;display:flex;justify-content:space-between}
-.progress-bar{height:3px;background:var(--border2);border-radius:3px;overflow:hidden}
-.progress-fill{height:100%;width:0%;border-radius:3px;transition:width .3s}
-.fill-img{background:var(--img)}
-.fill-vid{background:var(--vid)}
-.fill-voice{background:var(--voice)}
+  .tab-btn .icon { font-size: 1rem; }
 
-/* Result image */
-.result-img-el{
-  display:none;width:100%;height:100%;object-fit:cover;border-radius:14px;
-  position:absolute;inset:0
-}
-/* Result video */
-.result-video-el{display:none;width:100%;border-radius:14px;position:absolute;inset:0;height:100%;object-fit:cover}
-/* Voice result */
-.voice-result{display:none;flex-direction:column;width:100%;padding:0}
-.waveform{display:flex;align-items:center;gap:2.5px;padding:24px 20px 16px;justify-content:center;min-height:80px}
-.wb{width:3px;border-radius:3px;background:var(--voice);opacity:0.45}
-.wb.anim{animation:wv 0.7s ease-in-out infinite}
-@keyframes wv{0%,100%{transform:scaleY(0.3);opacity:0.25}50%{transform:scaleY(1);opacity:0.85}}
-.audio-ctrl{display:flex;align-items:center;gap:12px;padding:0 20px 20px}
-.play-btn{
-  width:38px;height:38px;border-radius:50%;
-  background:rgba(129,140,248,0.13);border:1px solid rgba(129,140,248,0.25);
-  color:var(--voice);display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:1rem;transition:all .2s;flex-shrink:0
-}
-.play-btn:hover{background:rgba(129,140,248,0.22)}
-.a-progress{flex:1;height:3px;background:var(--border2);border-radius:3px;overflow:hidden;cursor:pointer}
-.a-fill{height:100%;width:0%;background:var(--voice);border-radius:3px;transition:width .1s linear}
-.a-time{font-size:0.7rem;color:var(--muted);flex-shrink:0}
+  .tab-btn:hover { color: var(--text); }
 
-/* ─── ACTION ROW ─── */
-.action-row{display:flex;gap:7px;margin-top:10px}
-.act-btn{
-  flex:1;padding:10px 12px;background:var(--surface);border:1px solid var(--border2);
-  border-radius:10px;color:var(--muted2);font-size:0.78rem;cursor:pointer;
-  transition:all .2s;font-family:'DM Sans',sans-serif;text-align:center
-}
-.act-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.15);background:var(--surface2)}
-.act-btn:disabled{opacity:0.4;cursor:not-allowed}
+  .tab-btn.active-img {
+    background: rgba(0,229,200,0.12);
+    color: var(--accent-img);
+    box-shadow: 0 0 0 1px rgba(0,229,200,0.25);
+  }
 
-/* ─── ERROR TOAST ─── */
-.toast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
-  background:#1a0a0a;border:1px solid rgba(239,68,68,0.35);border-radius:10px;
-  padding:12px 20px;font-size:0.82rem;color:#fca5a5;display:flex;align-items:center;gap:8px;
-  z-index:999;transition:transform .3s ease;max-width:90vw;white-space:pre-wrap;
-  box-shadow:0 8px 30px rgba(0,0,0,0.5)
-}
-.toast.on{transform:translateX(-50%) translateY(0)}
-.toast-ok{
-  background:#041a13;border-color:rgba(0,229,200,0.35);color:#5eead4
-}
+  .tab-btn.active-vid {
+    background: rgba(255,95,87,0.12);
+    color: var(--accent-vid);
+    box-shadow: 0 0 0 1px rgba(255,95,87,0.25);
+  }
 
-/* ─── STATUS TAG ─── */
-.status-tag{
-  position:absolute;bottom:12px;right:12px;
-  display:none;align-items:center;gap:5px;
-  font-size:0.68rem;padding:4px 10px;border-radius:100px;
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)
-}
-.status-tag.on{display:inline-flex}
-.status-tag.s-img{background:rgba(0,229,200,0.12);color:var(--img);border:1px solid rgba(0,229,200,0.2)}
-.status-tag.s-vid{background:rgba(249,115,22,0.12);color:var(--vid);border:1px solid rgba(249,115,22,0.2)}
-.status-tag.s-voice{background:rgba(129,140,248,0.12);color:var(--voice);border:1px solid rgba(129,140,248,0.2)}
-.sdot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:pd 1.5s infinite}
-@keyframes pd{0%,100%{opacity:1}50%{opacity:0.2}}
+  .tab-btn.active-voice {
+    background: rgba(167,139,250,0.12);
+    color: var(--accent-voice);
+    box-shadow: 0 0 0 1px rgba(167,139,250,0.25);
+  }
 
-/* ─── VIDEO STATUS ─── */
-.vid-status{
-  display:none;flex-direction:column;align-items:center;gap:10px;
-  position:absolute;inset:0;justify-content:center;text-align:center;padding:20px
-}
-.vid-status.on{display:flex}
-.vid-status-icon{font-size:2rem;animation:bob 2s ease-in-out infinite}
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-.vid-status p{font-size:0.8rem;color:var(--muted2);line-height:1.5}
-.vid-eta{font-size:0.7rem;color:var(--muted);margin-top:4px}
+  /* Panel */
+  .panel { display: none; animation: fadeUp 0.3s ease; }
+  .panel.active { display: block; }
 
-/* ─── GALLERY ─── */
-.gallery{padding:32px 0 60px}
-.gallery-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.gallery-title{font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;
-  letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}
-.gal-clear{font-size:0.72rem;color:var(--muted);background:none;border:1px solid var(--border2);
-  border-radius:6px;padding:4px 12px;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
-.gal-clear:hover{color:var(--text);border-color:rgba(255,255,255,0.15)}
-.gallery-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-@media(max-width:580px){.gallery-grid{grid-template-columns:repeat(2,1fr)}}
-.gal-item{
-  border-radius:10px;overflow:hidden;position:relative;cursor:pointer;
-  border:1px solid var(--border);background:var(--surface2)
-}
-.gal-item img{width:100%;height:100%;object-fit:cover;display:block;
-  transition:transform .3s;aspect-ratio:1}
-.gal-item:hover img{transform:scale(1.04)}
-.gal-overlay{
-  position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.65),transparent 55%);
-  opacity:0;transition:opacity .25s;padding:10px;display:flex;align-items:flex-end
-}
-.gal-item:hover .gal-overlay{opacity:1}
-.gal-label{font-size:0.66rem;color:rgba(255,255,255,0.85);line-height:1.3}
-.gal-empty{color:var(--muted);font-size:0.82rem;text-align:center;padding:24px 0;grid-column:1/-1}
-.gal-type-badge{
-  position:absolute;top:7px;left:7px;font-size:0.6rem;padding:2px 7px;border-radius:100px;
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-weight:500;letter-spacing:0.05em
-}
-.badge-img{background:rgba(0,229,200,0.2);color:var(--img);border:1px solid rgba(0,229,200,0.25)}
-.badge-voice{background:rgba(129,140,248,0.2);color:var(--voice);border:1px solid rgba(129,140,248,0.25)}
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-/* Divider */
-hr{border:none;border-top:1px solid var(--border);margin:28px 0}
+  .panel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 680px) {
+    .panel-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .card-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Prompt area */
+  .prompt-area {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+
+  .prompt-area:focus-within { border-color: rgba(255,255,255,0.15); }
+
+  textarea {
+    width: 100%;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    resize: none;
+    line-height: 1.6;
+    min-height: 80px;
+  }
+
+  textarea::placeholder { color: var(--muted); }
+
+  .prompt-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .char-count { font-size: 0.75rem; color: var(--muted); }
+
+  .enhance-btn {
+    font-size: 0.75rem;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .enhance-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  /* Settings row */
+  .settings-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .setting-item label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-bottom: 5px;
+    letter-spacing: 0.04em;
+  }
+
+  select, .select-fake {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+
+  select:focus { border-color: rgba(255,255,255,0.15); }
+
+  /* Generate button */
+  .gen-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .gen-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.2s;
+  }
+
+  .gen-btn:hover::after { background: rgba(255,255,255,0.06); }
+
+  .gen-btn-img {
+    background: linear-gradient(135deg, #00b8a0, #00e5c8);
+    color: #041a17;
+  }
+
+  .gen-btn-vid {
+    background: linear-gradient(135deg, #d9473f, #ff5f57);
+    color: #1a0605;
+  }
+
+  .gen-btn-voice {
+    background: linear-gradient(135deg, #7c5fd4, #a78bfa);
+    color: #0e0a1a;
+  }
+
+  .gen-btn:active { transform: scale(0.98); }
+
+  /* Preview card */
+  .preview-card {
+    aspect-ratio: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .preview-card.video-preview { aspect-ratio: 16/9; }
+  .preview-card.voice-preview { aspect-ratio: unset; min-height: 180px; }
+
+  .preview-placeholder {
+    text-align: center;
+    padding: 20px;
+  }
+
+  .preview-placeholder .big-icon {
+    font-size: 2.4rem;
+    opacity: 0.2;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .preview-placeholder p {
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  /* Generated image simulation */
+  .gen-result {
+    display: none;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gen-result.show { display: flex; }
+
+  /* Shimmer loader */
+  .shimmer {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, var(--surface2) 25%, var(--surface) 50%, var(--surface2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 14px;
+  }
+
+  .shimmer.show { display: block; }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Tags */
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .tag {
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s;
+    background: var(--surface2);
+  }
+
+  .tag:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  .tag.active-tag-img { color: var(--accent-img); border-color: rgba(0,229,200,0.35); background: rgba(0,229,200,0.06); }
+  .tag.active-tag-vid { color: var(--accent-vid); border-color: rgba(255,95,87,0.35); background: rgba(255,95,87,0.06); }
+  .tag.active-tag-voice { color: var(--accent-voice); border-color: rgba(167,139,250,0.35); background: rgba(167,139,250,0.06); }
+
+  /* Slider */
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent-voice);
+    cursor: pointer;
+  }
+
+  /* Voice waveform */
+  .waveform {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 20px;
+    justify-content: center;
+  }
+
+  .wave-bar {
+    width: 3px;
+    border-radius: 3px;
+    background: var(--accent-voice);
+    opacity: 0.5;
+    transition: height 0.1s;
+  }
+
+  .wave-bar.playing {
+    animation: wave 0.8s ease-in-out infinite;
+  }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.4); opacity: 0.3; }
+    50% { transform: scaleY(1); opacity: 0.9; }
+  }
+
+  /* Audio controls */
+  .audio-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 20px 20px;
+  }
+
+  .play-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(167,139,250,0.15);
+    border: 1px solid rgba(167,139,250,0.3);
+    color: var(--accent-voice);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .play-btn:hover { background: rgba(167,139,250,0.25); }
+
+  .audio-progress {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .audio-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent-voice);
+    border-radius: 3px;
+    transition: width 0.1s linear;
+  }
+
+  .audio-time { font-size: 0.72rem; color: var(--muted); flex-shrink: 0; }
+
+  /* Gallery */
+  .gallery {
+    margin-top: 40px;
+    padding-bottom: 60px;
+  }
+
+  .gallery-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .gallery-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  @media (max-width: 600px) {
+    .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .gallery-item {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: saturate(0.9) brightness(0.9);
+    transition: filter 0.3s;
+  }
+
+  .gallery-item:hover img { filter: saturate(1.1) brightness(1); }
+
+  .gallery-item-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .gallery-item:hover .gallery-item-overlay { opacity: 1; }
+
+  .gallery-item-label {
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.3;
+  }
+
+  /* Status pill */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 100px;
+    background: rgba(0,229,200,0.1);
+    color: var(--accent-img);
+    border: 1px solid rgba(0,229,200,0.2);
+    margin-bottom: 6px;
+  }
+
+  .status-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 32px 0;
+  }
+
+  /* Generated image placeholders using CSS art */
+  .css-img-1 { background: linear-gradient(135deg, #1a0a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%); }
+  .css-img-2 { background: linear-gradient(135deg, #0d1117 0%, #161b22 30%, #21262d 60%, #30363d 100%); }
+  .css-img-3 { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 30%, #0f3460 60%, #e94560 100%); }
+  .css-img-4 { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 30%, #2d2d2d 60%, #ff6b35 100%); }
+
 </style>
 </head>
 <body>
 
-<div class="bg-orbs"><span></span><span></span><span></span></div>
-<div class="noise"></div>
+<div class="container">
 
-<div class="wrap">
+  <header>
+    <div class="logo">AURA <span>AI Media Studio</span></div>
+    <div class="badge">Beta</div>
+  </header>
 
-<!-- HEADER -->
-<header>
-  <div>
-    <span class="logo">AURA<span class="logo-sub">AI Media Studio</span></span>
+  <div class="hero">
+    <h1>Create anything.<br><em>Instantly.</em></h1>
+    <p>Generate AI images, videos, and voice from simple text prompts — all in one place.</p>
   </div>
-  <div class="header-right">
-    <span class="pill" id="model-badge">Ready</span>
-  </div>
-</header>
 
-<!-- API KEY SETUP -->
-<div class="setup-banner">
-  <div class="setup-icon">🔑</div>
-  <div class="setup-text" style="flex:1">
-    <h3>Connect Your API Keys</h3>
-    <p>Paste your API keys below to activate real AI generation. Keys are saved in your browser only and never sent to any server except the respective AI provider.</p>
-    <div class="setup-keys">
-      <div class="key-input-wrap">
-        <label>OpenAI Key <span style="opacity:0.5">(Images)</span></label>
-        <div class="key-row">
-          <input class="key-input" type="password" id="key-openai" placeholder="sk-..."/>
-          <button class="key-save-btn" onclick="saveKey('openai')">Save</button>
-        </div>
-      </div>
-      <div class="key-input-wrap">
-        <label>ElevenLabs Key <span style="opacity:0.5">(Voice)</span></label>
-        <div class="key-row">
-          <input class="key-input" type="password" id="key-elevenlabs" placeholder="xi-api-key..."/>
-          <button class="key-save-btn" onclick="saveKey('elevenlabs')">Save</button>
-        </div>
-      </div>
-      <div class="key-input-wrap">
-        <label>Runway Key <span style="opacity:0.5">(Video)</span></label>
-        <div class="key-row">
-          <input class="key-input" type="password" id="key-runway" placeholder="key_..."/>
-          <button class="key-save-btn" onclick="saveKey('runway')">Save</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- TABS -->
-<div class="tabs-wrap">
   <div class="tabs">
-    <button class="tab t-img on" onclick="switchTab('img',this)">🖼 Image</button>
-    <button class="tab t-vid" onclick="switchTab('vid',this)">🎬 Video</button>
-    <button class="tab t-voice" onclick="switchTab('voice',this)">🎙 Voice</button>
-  </div>
-</div>
-
-<!-- ══════════════ IMAGE PANEL ══════════════ -->
-<div class="panel on" id="panel-img">
-  <div class="two-col">
-    <!-- Left: controls -->
-    <div class="card">
-      <div class="card-title">Style</div>
-      <div class="chips" id="img-chips">
-        <span class="chip on-img" data-v="photorealistic, ultra-detailed">Photorealistic</span>
-        <span class="chip" data-v="cinematic, film grain, anamorphic lens">Cinematic</span>
-        <span class="chip" data-v="digital illustration, vibrant colors">Illustration</span>
-        <span class="chip" data-v="3D render, octane render, studio lighting">3D Render</span>
-        <span class="chip" data-v="anime style, Studio Ghibli inspired">Anime</span>
-        <span class="chip" data-v="watercolor painting, soft washes">Watercolor</span>
-        <span class="chip" data-v="oil painting, impressionist, textured">Oil Painting</span>
-        <span class="chip" data-v="dark fantasy, gothic, dramatic shadows">Dark Fantasy</span>
-      </div>
-
-      <div class="card-title">Prompt</div>
-      <div class="ta-wrap">
-        <textarea id="img-prompt" rows="4" maxlength="1000"
-          placeholder="A lone astronaut on a crimson alien plateau, twin moons on the horizon, volumetric god rays, golden hour light..."></textarea>
-        <div class="ta-footer">
-          <span class="ta-count"><span id="img-len">0</span> / 1000</span>
-          <button class="ta-btn" onclick="enhanceImg()">✨ Enhance</button>
-        </div>
-      </div>
-
-      <div class="selects">
-        <div class="sel-group">
-          <label>Model</label>
-          <select id="img-model">
-            <option value="dall-e-3">DALL·E 3 (Best)</option>
-            <option value="dall-e-2">DALL·E 2 (Faster)</option>
-          </select>
-        </div>
-        <div class="sel-group">
-          <label>Aspect Ratio</label>
-          <select id="img-size">
-            <option value="1024x1024">1:1 Square</option>
-            <option value="1792x1024">16:9 Wide</option>
-            <option value="1024x1792">9:16 Portrait</option>
-          </select>
-        </div>
-        <div class="sel-group">
-          <label>Quality</label>
-          <select id="img-quality">
-            <option value="hd">HD</option>
-            <option value="standard">Standard</option>
-          </select>
-        </div>
-        <div class="sel-group">
-          <label>Style</label>
-          <select id="img-style">
-            <option value="vivid">Vivid</option>
-            <option value="natural">Natural</option>
-          </select>
-        </div>
-      </div>
-
-      <button class="gen-btn gen-img" id="gen-img-btn" onclick="generateImage()">
-        <div class="btn-spinner" id="img-spinner"></div>
-        <span id="img-btn-txt">✦ Generate Image</span>
-      </button>
-    </div>
-
-    <!-- Right: preview -->
-    <div>
-      <div class="preview sq" id="preview-img">
-        <div class="shimmer" id="sh-img"></div>
-        <div class="preview-empty" id="empty-img">
-          <span class="ei">🖼</span>
-          <p>Your generated image<br>will appear here</p>
-        </div>
-        <img class="result-img-el" id="out-img" alt="Generated image"/>
-        <div class="progress-wrap" id="prog-img">
-          <div class="progress-label"><span>Generating...</span><span id="img-prog-pct">0%</span></div>
-          <div class="progress-bar"><div class="progress-fill fill-img" id="img-prog-bar"></div></div>
-        </div>
-        <div class="status-tag s-img" id="stag-img"><span class="sdot"></span>Ready</div>
-      </div>
-      <div class="action-row">
-        <button class="act-btn" id="dl-img-btn" onclick="downloadImage()" disabled>⬇ Download</button>
-        <button class="act-btn" onclick="generateImage()">↻ Again</button>
-        <button class="act-btn" id="copy-img-btn" onclick="copyImgUrl()" disabled>⧉ Copy URL</button>
-      </div>
-    </div>
+    <button class="tab-btn active-img" onclick="switchTab('img', this)">
+      <span class="icon">🖼</span> Image
+    </button>
+    <button class="tab-btn" onclick="switchTab('vid', this)">
+      <span class="icon">🎬</span> Video
+    </button>
+    <button class="tab-btn" onclick="switchTab('voice', this)">
+      <span class="icon">🎙</span> Voice
+    </button>
   </div>
 
-  <hr/>
-  <!-- Gallery -->
-  <div class="gallery">
-    <div class="gallery-hd">
-      <span class="gallery-title">Image History</span>
-      <button class="gal-clear" onclick="clearGallery('img')">Clear</button>
-    </div>
-    <div class="gallery-grid" id="gal-img">
-      <p class="gal-empty">Generated images will appear here</p>
-    </div>
-  </div>
-</div>
+  <!-- IMAGE PANEL -->
+  <div class="panel active" id="panel-img">
+    <div class="panel-grid">
+      <div>
+        <div class="card">
+          <div class="card-label">Prompt</div>
 
-<!-- ══════════════ VIDEO PANEL ══════════════ -->
-<div class="panel" id="panel-vid">
-  <div class="two-col">
-    <div class="card">
-      <div class="card-title">Mode</div>
-      <div class="chips" id="vid-chips">
-        <span class="chip on-vid" data-v="txt2vid">Text → Video</span>
-        <span class="chip" data-v="img2vid">Image → Video</span>
-      </div>
+          <div class="tag-row">
+            <span class="tag active-tag-img" onclick="toggleTag(this,'img')">Photorealistic</span>
+            <span class="tag" onclick="toggleTag(this,'img')">Cinematic</span>
+            <span class="tag" onclick="toggleTag(this,'img')">Illustration</span>
+            <span class="tag" onclick="toggleTag(this,'img')">3D Render</span>
+            <span class="tag" onclick="toggleTag(this,'img')">Anime</span>
+            <span class="tag" onclick="toggleTag(this,'img')">Watercolor</span>
+          </div>
 
-      <div class="card-title">Prompt</div>
-      <div class="ta-wrap">
-        <textarea id="vid-prompt" rows="4" maxlength="800"
-          placeholder="A majestic eagle soaring over snow-capped mountains at golden hour, slow motion, cinematic tracking shot..."></textarea>
-        <div class="ta-footer">
-          <span class="ta-count"><span id="vid-len">0</span> / 800</span>
-          <button class="ta-btn" onclick="enhanceVid()">✨ Enhance</button>
-        </div>
-      </div>
-
-      <!-- Image upload for img2vid (hidden by default) -->
-      <div id="vid-img-upload" style="display:none;margin-bottom:14px">
-        <div class="card-title">Source Image</div>
-        <label style="display:block;background:var(--surface2);border:2px dashed var(--border2);border-radius:10px;
-          padding:20px;text-align:center;cursor:pointer;transition:border-color .2s;font-size:0.82rem;color:var(--muted2)">
-          <span id="upload-label">Click to upload or drop an image</span>
-          <input type="file" id="vid-img-file" accept="image/*" style="display:none" onchange="previewVidImg(event)"/>
-        </label>
-        <img id="vid-img-preview" style="display:none;width:100%;border-radius:10px;margin-top:8px;max-height:150px;object-fit:cover"/>
-      </div>
-
-      <div class="selects">
-        <div class="sel-group">
-          <label>Duration</label>
-          <select id="vid-duration">
-            <option value="5">5 seconds</option>
-            <option value="10">10 seconds</option>
-          </select>
-        </div>
-        <div class="sel-group">
-          <label>Ratio</label>
-          <select id="vid-ratio">
-            <option value="1280:720">16:9 Wide</option>
-            <option value="720:1280">9:16 Portrait</option>
-            <option value="1:1">1:1 Square</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="slider-group">
-        <div class="slider-label"><span>Motion Intensity</span><span id="vid-motion-val">5</span></div>
-        <input type="range" class="vid-range" min="1" max="10" value="5" id="vid-motion"
-          oninput="document.getElementById('vid-motion-val').textContent=this.value"/>
-      </div>
-
-      <button class="gen-btn gen-vid" id="gen-vid-btn" onclick="generateVideo()">
-        <div class="btn-spinner" id="vid-spinner"></div>
-        <span id="vid-btn-txt">▶ Generate Video</span>
-      </button>
-    </div>
-
-    <div>
-      <div class="preview wd" id="preview-vid">
-        <div class="shimmer" id="sh-vid"></div>
-        <div class="preview-empty" id="empty-vid">
-          <span class="ei">🎬</span>
-          <p>Your generated video<br>will appear here</p>
-        </div>
-        <div class="vid-status" id="vid-polling-status">
-          <div class="vid-status-icon">⚙️</div>
-          <p>Runway is rendering your video…<br>This usually takes 30–90 seconds.</p>
-          <p class="vid-eta" id="vid-eta">Elapsed: 0s</p>
-        </div>
-        <video class="result-video-el" id="out-vid" controls autoplay loop muted></video>
-        <div class="progress-wrap" id="prog-vid">
-          <div class="progress-label"><span id="vid-prog-lbl">Submitting job…</span><span id="vid-prog-pct">0%</span></div>
-          <div class="progress-bar"><div class="progress-fill fill-vid" id="vid-prog-bar"></div></div>
-        </div>
-        <div class="status-tag s-vid" id="stag-vid"><span class="sdot"></span>Ready</div>
-      </div>
-      <div class="action-row">
-        <button class="act-btn" id="dl-vid-btn" onclick="downloadVideo()" disabled>⬇ Download MP4</button>
-        <button class="act-btn" onclick="generateVideo()">↻ Again</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════ VOICE PANEL ══════════════ -->
-<div class="panel" id="panel-voice">
-  <div class="two-col">
-    <div class="card">
-      <div class="card-title">Tone</div>
-      <div class="chips" id="voice-chips">
-        <span class="chip on-voice" data-v="">Narration</span>
-        <span class="chip" data-v=" Speak with conversational warmth and natural pauses.">Conversational</span>
-        <span class="chip" data-v=" Speak with authority and professional gravitas.">Professional</span>
-        <span class="chip" data-v=" Speak gently, slowly and soothingly, like a guided meditation.">Meditation</span>
-        <span class="chip" data-v=" Speak with high energy and excitement, like a commercial voiceover.">Ad Copy</span>
-      </div>
-
-      <div class="card-title">Script</div>
-      <div class="ta-wrap">
-        <textarea id="voice-prompt" rows="5" maxlength="3000"
-          placeholder="Welcome to the future. A place where creativity knows no limits, and imagination becomes reality at the speed of thought..."></textarea>
-        <div class="ta-footer">
-          <span class="ta-count"><span id="voice-len">0</span> / 3000</span>
-          <button class="ta-btn" onclick="polishVoice()">✨ Polish</button>
-        </div>
-      </div>
-
-      <div class="selects">
-        <div class="sel-group">
-          <label>Voice</label>
-          <select id="voice-id">
-            <option value="21m00Tcm4TlvDq8ikWAM">Rachel — Warm Female</option>
-            <option value="AZnzlk1XvdvUeBnXmlld">Domi — Confident Female</option>
-            <option value="EXAVITQu4vr4xnSDxMaL">Bella — Soft Female</option>
-            <option value="ErXwobaYiN019PkySvjV">Antoni — Smooth Male</option>
-            <option value="VR6AewLTigWG4xSOukaG">Arnold — Deep Male</option>
-            <option value="pNInz6obpgDQGcFmaJgB">Adam — Narrator Male</option>
-            <option value="yoZ06aMxZJJ28mfd3POQ">Sam — Young Male</option>
-          </select>
-        </div>
-        <div class="sel-group">
-          <label>Model</label>
-          <select id="voice-model">
-            <option value="eleven_multilingual_v2">Multilingual v2 (Best)</option>
-            <option value="eleven_monolingual_v1">English v1 (Fast)</option>
-            <option value="eleven_turbo_v2">Turbo v2 (Fastest)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="slider-group">
-        <div class="slider-label"><span>Stability</span><span id="stab-val">50%</span></div>
-        <input type="range" class="voice-range" min="0" max="100" value="50" id="stab-range"
-          oninput="document.getElementById('stab-val').textContent=this.value+'%'"/>
-      </div>
-      <div class="slider-group">
-        <div class="slider-label"><span>Similarity Boost</span><span id="sim-val">75%</span></div>
-        <input type="range" class="voice-range" min="0" max="100" value="75" id="sim-range"
-          oninput="document.getElementById('sim-val').textContent=this.value+'%'"/>
-      </div>
-      <div class="slider-group">
-        <div class="slider-label"><span>Style Exaggeration</span><span id="style-val">0%</span></div>
-        <input type="range" class="voice-range" min="0" max="100" value="0" id="style-range"
-          oninput="document.getElementById('style-val').textContent=this.value+'%'"/>
-      </div>
-
-      <button class="gen-btn gen-voice" id="gen-voice-btn" onclick="generateVoice()">
-        <div class="btn-spinner" id="voice-spinner"></div>
-        <span id="voice-btn-txt">🎙 Generate Voice</span>
-      </button>
-    </div>
-
-    <div>
-      <div class="preview vt" id="preview-voice">
-        <div class="shimmer" id="sh-voice"></div>
-        <div class="preview-empty" id="empty-voice">
-          <span class="ei">🎙</span>
-          <p>Your generated audio<br>will appear here</p>
-        </div>
-        <div class="voice-result" id="out-voice">
-          <div class="waveform" id="waveform"></div>
-          <div class="audio-ctrl">
-            <button class="play-btn" id="play-btn" onclick="togglePlay()">▶</button>
-            <div class="a-progress" onclick="seekAudio(event)">
-              <div class="a-fill" id="a-fill"></div>
+          <div class="prompt-area">
+            <textarea id="img-prompt" rows="4" placeholder="A lone astronaut standing on a crimson alien planet, golden hour light, dramatic clouds, ultra-detailed, cinematic lens flare..."></textarea>
+            <div class="prompt-footer">
+              <span class="char-count" id="img-char">0 / 500</span>
+              <button class="enhance-btn" onclick="enhancePrompt('img')">✨ Enhance</button>
             </div>
-            <span class="a-time" id="a-time">0:00</span>
+          </div>
+
+          <div class="settings-row">
+            <div class="setting-item">
+              <label>Model</label>
+              <select>
+                <option>DALL·E 3</option>
+                <option>Stable Diffusion XL</option>
+                <option>Midjourney v7</option>
+                <option>Flux Pro</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Aspect Ratio</label>
+              <select>
+                <option>1:1 Square</option>
+                <option>16:9 Wide</option>
+                <option>9:16 Portrait</option>
+                <option>4:3 Classic</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Quality</label>
+              <select>
+                <option>HD</option>
+                <option>Standard</option>
+                <option>Ultra HD</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Count</label>
+              <select>
+                <option>1 image</option>
+                <option>2 images</option>
+                <option>4 images</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="gen-btn gen-btn-img" onclick="generate('img')">
+            <span>✦</span> Generate Image
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="preview-card" id="preview-img">
+          <div class="shimmer" id="shimmer-img"></div>
+          <div class="preview-placeholder" id="placeholder-img">
+            <span class="big-icon">🖼</span>
+            <p>Your generated image<br>will appear here</p>
+          </div>
+          <div class="gen-result" id="result-img" style="background: linear-gradient(135deg, #0d0d1a 0%, #1a0a2e 30%, #0f3460 70%, #2d1b5e 100%); border-radius: 14px; display:none; flex-direction:column; align-items:center; justify-content:center;">
+            <div style="text-align:center; padding:20px;">
+              <div style="font-size:3rem; margin-bottom:12px; filter: drop-shadow(0 0 20px rgba(0,229,200,0.5));">🌌</div>
+              <p style="font-size:0.8rem; color:rgba(255,255,255,0.5); max-width:200px; line-height:1.5;">Photorealistic astronaut on alien terrain — generated in 4.2s</p>
+              <div class="status-pill" style="margin-top:12px; display:inline-flex;">
+                <span class="status-dot"></span> Ready to download
+              </div>
+            </div>
           </div>
         </div>
-        <div class="progress-wrap" id="prog-voice">
-          <div class="progress-label"><span>Synthesizing speech…</span><span id="voice-prog-pct">0%</span></div>
-          <div class="progress-bar"><div class="progress-fill fill-voice" id="voice-prog-bar"></div></div>
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="enhance-btn" style="flex:1; padding:10px;" onclick="downloadResult()">⬇ Download</button>
+          <button class="enhance-btn" style="flex:1; padding:10px;" onclick="generate('img')">↻ Regenerate</button>
+          <button class="enhance-btn" style="padding:10px 14px;">⋯</button>
         </div>
-        <div class="status-tag s-voice" id="stag-voice"><span class="sdot"></span>Ready</div>
       </div>
-      <div class="action-row">
-        <button class="act-btn" id="dl-voice-btn" onclick="downloadAudio()" disabled>⬇ Download MP3</button>
-        <button class="act-btn" onclick="generateVoice()">↻ Again</button>
-        <button class="act-btn" id="copy-voice-btn" onclick="addToGallery('voice')" disabled>+ Save</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="gallery">
+      <div class="gallery-header">
+        <span class="gallery-title">Recent Generations</span>
+        <button class="enhance-btn">View all</button>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-item">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0a2e,#0f3460,#533483);"></div>
+          <div class="gallery-item-overlay"><span class="gallery-item-label">Cosmic nebula, deep space photography</span></div>
+        </div>
+        <div class="gallery-item">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#0a1628,#1a3a5c,#2d6a8c,#4a9aba);"></div>
+          <div class="gallery-item-overlay"><span class="gallery-item-label">Underwater city at dusk</span></div>
+        </div>
+        <div class="gallery-item">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0505,#3d0f0f,#7a1f1f,#d4472d);"></div>
+          <div class="gallery-item-overlay"><span class="gallery-item-label">Ancient ruins at sunset</span></div>
+        </div>
+        <div class="gallery-item">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#050a05,#0d1f0d,#1a3d1a,#2d6b2d);"></div>
+          <div class="gallery-item-overlay"><span class="gallery-item-label">Enchanted forest, bioluminescent</span></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <hr/>
-  <div class="gallery">
-    <div class="gallery-hd">
-      <span class="gallery-title">Voice History</span>
-      <button class="gal-clear" onclick="clearGallery('voice')">Clear</button>
-    </div>
-    <div class="gallery-grid" id="gal-voice">
-      <p class="gal-empty">Generated audio clips will appear here</p>
+  <!-- VIDEO PANEL -->
+  <div class="panel" id="panel-vid">
+    <div class="panel-grid">
+      <div>
+        <div class="card">
+          <div class="card-label">Prompt</div>
+
+          <div class="tag-row">
+            <span class="tag active-tag-vid" onclick="toggleTag(this,'vid')">Text to Video</span>
+            <span class="tag" onclick="toggleTag(this,'vid')">Image to Video</span>
+            <span class="tag" onclick="toggleTag(this,'vid')">Video Extend</span>
+          </div>
+
+          <div class="prompt-area">
+            <textarea id="vid-prompt" rows="4" placeholder="A majestic eagle soaring over mountain peaks, slow motion, golden hour, cinematic tracking shot, 4K quality..."></textarea>
+            <div class="prompt-footer">
+              <span class="char-count" id="vid-char">0 / 500</span>
+              <button class="enhance-btn" onclick="enhancePrompt('vid')">✨ Enhance</button>
+            </div>
+          </div>
+
+          <div class="settings-row">
+            <div class="setting-item">
+              <label>Model</label>
+              <select>
+                <option>Runway Gen-4</option>
+                <option>Kling AI</option>
+                <option>Luma Dream Machine</option>
+                <option>Pika 2.0</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Duration</label>
+              <select>
+                <option>5 seconds</option>
+                <option>10 seconds</option>
+                <option>15 seconds</option>
+                <option>30 seconds</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Resolution</label>
+              <select>
+                <option>1080p</option>
+                <option>720p</option>
+                <option>4K (slow)</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Motion</label>
+              <select>
+                <option>Smooth</option>
+                <option>Dynamic</option>
+                <option>Slow Motion</option>
+                <option>Hyperlapse</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="gen-btn gen-btn-vid" onclick="generate('vid')">
+            <span>▶</span> Generate Video
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="preview-card video-preview" id="preview-vid">
+          <div class="shimmer" id="shimmer-vid"></div>
+          <div class="preview-placeholder" id="placeholder-vid">
+            <span class="big-icon">🎬</span>
+            <p>Your generated video<br>will appear here</p>
+          </div>
+          <div class="gen-result" id="result-vid" style="background: linear-gradient(135deg, #1a0505 0%, #3d0000 40%, #800000 70%, #cc3300 100%); border-radius: 14px; display:none; flex-direction:column; align-items:center; justify-content:center;">
+            <div style="text-align:center; padding:20px;">
+              <div style="font-size:3rem; margin-bottom:12px; filter: drop-shadow(0 0 20px rgba(255,95,87,0.5));">🦅</div>
+              <p style="font-size:0.8rem; color:rgba(255,255,255,0.5); max-width:200px; line-height:1.5;">5-second cinematic eagle flight — generated in 38s</p>
+              <div class="status-pill" style="margin-top:12px; display:inline-flex; background:rgba(255,95,87,0.1); color:var(--accent-vid); border-color:rgba(255,95,87,0.2);">
+                <span class="status-dot" style="background:var(--accent-vid);"></span> Ready to export
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="enhance-btn" style="flex:1; padding:10px;">⬇ Export MP4</button>
+          <button class="enhance-btn" style="flex:1; padding:10px;" onclick="generate('vid')">↻ Regenerate</button>
+          <button class="enhance-btn" style="padding:10px 14px;">+ Audio</button>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!-- VOICE PANEL -->
+  <div class="panel" id="panel-voice">
+    <div class="panel-grid">
+      <div>
+        <div class="card">
+          <div class="card-label">Script</div>
+
+          <div class="tag-row">
+            <span class="tag active-tag-voice" onclick="toggleTag(this,'voice')">Narration</span>
+            <span class="tag" onclick="toggleTag(this,'voice')">Dialogue</span>
+            <span class="tag" onclick="toggleTag(this,'voice')">Advertisement</span>
+            <span class="tag" onclick="toggleTag(this,'voice')">Meditation</span>
+          </div>
+
+          <div class="prompt-area">
+            <textarea id="voice-prompt" rows="4" placeholder="Welcome to the future. A place where creativity knows no limits, and imagination becomes reality at the speed of thought..."></textarea>
+            <div class="prompt-footer">
+              <span class="char-count" id="voice-char">0 / 2000</span>
+              <button class="enhance-btn" onclick="enhancePrompt('voice')">✨ Polish</button>
+            </div>
+          </div>
+
+          <div class="settings-row">
+            <div class="setting-item">
+              <label>Voice</label>
+              <select>
+                <option>Aria — Warm Female</option>
+                <option>Marcus — Deep Male</option>
+                <option>Luna — Bright Female</option>
+                <option>Caden — Friendly Male</option>
+                <option>Sage — Neutral</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Language</label>
+              <select>
+                <option>English (US)</option>
+                <option>English (UK)</option>
+                <option>Spanish</option>
+                <option>French</option>
+                <option>Japanese</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="card-label" style="margin-bottom:10px;">Voice Settings</div>
+
+          <div style="margin-bottom:12px;">
+            <label style="font-size:0.72rem; color:var(--muted); display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span>Speed</span><span id="speed-val">1.0×</span>
+            </label>
+            <input type="range" min="0.5" max="2" step="0.1" value="1" oninput="document.getElementById('speed-val').textContent=this.value+'×'">
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <label style="font-size:0.72rem; color:var(--muted); display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span>Stability</span><span id="stability-val">75%</span>
+            </label>
+            <input type="range" min="0" max="100" step="5" value="75" oninput="document.getElementById('stability-val').textContent=this.value+'%'">
+          </div>
+
+          <button class="gen-btn gen-btn-voice" onclick="generate('voice')">
+            <span>🎙</span> Generate Voice
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="preview-card voice-preview" id="preview-voice" style="flex-direction:column; justify-content:center; padding:0;">
+          <div class="shimmer" id="shimmer-voice"></div>
+          <div class="preview-placeholder" id="placeholder-voice">
+            <span class="big-icon">🎙</span>
+            <p>Your generated audio<br>will appear here</p>
+          </div>
+          <div class="gen-result" id="result-voice" style="display:none; flex-direction:column; width:100%;">
+            <div class="waveform" id="waveform">
+              <!-- bars inserted by JS -->
+            </div>
+            <div class="audio-controls">
+              <button class="play-btn" id="play-btn" onclick="togglePlay()">▶</button>
+              <div class="audio-progress">
+                <div class="audio-fill" id="audio-fill"></div>
+              </div>
+              <span class="audio-time" id="audio-time">0:00 / 0:14</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="enhance-btn" style="flex:1; padding:10px;">⬇ Download MP3</button>
+          <button class="enhance-btn" style="flex:1; padding:10px;" onclick="generate('voice')">↻ Regenerate</button>
+          <button class="enhance-btn" style="padding:10px 14px;">+ to Video</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-</div><!-- /wrap -->
-
-<!-- Toast -->
-<div class="toast" id="toast"></div>
-
 <script>
-// ─── STATE ───────────────────────────────────
-const keys = {openai:'',elevenlabs:'',runway:''};
-let currentImgUrl = null;
-let currentAudioBlob = null;
-let currentVideoUrl = null;
-let audioEl = null;
-let audioPlaying = false;
-let audioRafId = null;
-let galleryImg = [];
-let galleryVoice = [];
-let runwayPollInterval = null;
+  // Tab switching
+  function switchTab(type, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('active-img', 'active-vid', 'active-voice');
+    });
+    document.getElementById('panel-' + type).classList.add('active');
+    btn.classList.add('active-' + type);
+  }
 
-// ─── INIT ────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  ['openai','elevenlabs','runway'].forEach(k => {
-    const stored = localStorage.getItem('aura_key_'+k);
-    if (stored) {
-      keys[k] = stored;
-      document.getElementById('key-'+k).value = stored;
-      markKeySaved(k);
-    }
-  });
-
-  ['img','vid','voice'].forEach(type => {
-    const ta = document.getElementById(type+'-prompt');
-    const counter = document.getElementById(type+'-len');
-    if (ta && counter) ta.addEventListener('input', () => { counter.textContent = ta.value.length; });
-  });
-
-  setupChips('img-chips','on-img');
-  setupChips('vid-chips','on-vid', handleVidModeChange);
-  setupChips('voice-chips','on-voice');
-  buildWaveform();
-  loadGallery();
-});
-
-// ─── KEYS ─────────────────────────────────────
-function saveKey(k) {
-  const val = document.getElementById('key-'+k).value.trim();
-  if (!val) { toast('Enter a key first', true); return; }
-  keys[k] = val;
-  localStorage.setItem('aura_key_'+k, val);
-  markKeySaved(k);
-  toast('✓ '+k.charAt(0).toUpperCase()+k.slice(1)+' key saved', false, true);
-}
-function markKeySaved(k) {
-  const btn = document.querySelector(`button[onclick="saveKey('${k}')"]`);
-  if (btn) { btn.textContent = '✓ Saved'; btn.classList.add('saved'); }
-}
-
-// ─── TABS ─────────────────────────────────────
-function switchTab(type, btn) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
-  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
-  document.getElementById('panel-'+type).classList.add('on');
-  btn.classList.add('on');
-}
-
-// ─── CHIPS ────────────────────────────────────
-function setupChips(containerId, activeClass, onChange) {
-  const wrap = document.getElementById(containerId);
-  if (!wrap) return;
-  wrap.querySelectorAll('.chip').forEach(c => {
-    c.addEventListener('click', () => {
-      wrap.querySelectorAll('.chip').forEach(x => x.classList.remove(activeClass));
-      c.classList.add(activeClass);
-      if (onChange) onChange(c.dataset.v);
+  // Char counters
+  ['img', 'vid', 'voice'].forEach(type => {
+    const ta = document.getElementById(type + '-prompt');
+    const counter = document.getElementById(type + '-char');
+    if (!ta || !counter) return;
+    ta.addEventListener('input', () => {
+      const max = type === 'voice' ? 2000 : 500;
+      counter.textContent = ta.value.length + ' / ' + max;
     });
   });
-}
-function getActiveChip(containerId) {
-  const c = document.querySelector('#'+containerId+' .chip.on-img, #'+containerId+' .chip.on-vid, #'+containerId+' .chip.on-voice');
-  return c ? c.dataset.v : '';
-}
 
-function handleVidModeChange(mode) {
-  document.getElementById('vid-img-upload').style.display = mode === 'img2vid' ? 'block' : 'none';
-}
+  // Tags
+  function toggleTag(el, type) {
+    const activeClass = 'active-tag-' + type;
+    const siblings = el.parentElement.querySelectorAll('.tag');
+    siblings.forEach(s => s.classList.remove(activeClass));
+    el.classList.add(activeClass);
+  }
 
-function previewVidImg(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  document.getElementById('upload-label').textContent = file.name;
-  const url = URL.createObjectURL(file);
-  const preview = document.getElementById('vid-img-preview');
-  preview.src = url; preview.style.display = 'block';
-}
+  // Enhance prompt (mock)
+  const enhancedPrompts = {
+    img: "A lone astronaut in a weathered spacesuit standing on a crimson alien plateau, twin moons rising on the horizon, volumetric god rays piercing through amber clouds, Hasselblad medium format, f/2.8, golden hour, ultra-detailed surface textures, cinematic lens flare, award-winning photography",
+    vid: "A majestic bald eagle soaring in slow motion over snow-capped mountain peaks, dynamic thermal air currents visible, late afternoon golden hour light casting long shadows, smooth cinematic tracking shot from below, 24fps with 180° shutter, 4K RAW footage, National Geographic style",
+    voice: "Welcome to the future — a place where human creativity finds no limits, where imagination becomes reality at the speed of thought. Tonight, we stand at the threshold of a new era, one defined not by what machines replace, but by what they help us become."
+  };
 
-// ─── ENHANCE PROMPTS ──────────────────────────
-async function enhanceImg() {
-  const ta = document.getElementById('img-prompt');
-  const base = ta.value.trim();
-  if (!base) { toast('Enter a base prompt first'); return; }
-  const style = getActiveChip('img-chips');
-  ta.value = base + (style ? ', '+style : '') + ', highly detailed, masterpiece, 8K resolution, sharp focus, professional photography';
-  document.getElementById('img-len').textContent = ta.value.length;
-}
-async function enhanceVid() {
-  const ta = document.getElementById('vid-prompt');
-  const base = ta.value.trim();
-  if (!base) { toast('Enter a base prompt first'); return; }
-  ta.value = base + ', smooth camera motion, cinematic lighting, high detail, photorealistic, 4K quality';
-  document.getElementById('vid-len').textContent = ta.value.length;
-}
-async function polishVoice() {
-  const ta = document.getElementById('voice-prompt');
-  if (!ta.value.trim()) { toast('Enter a script first'); return; }
-  // Light polish: capitalize sentences, trim
-  ta.value = ta.value.trim().replace(/([.!?])\s+([a-z])/g, (m,p,c) => p+' '+c.toUpperCase());
-  document.getElementById('voice-len').textContent = ta.value.length;
-}
+  function enhancePrompt(type) {
+    const ta = document.getElementById(type + '-prompt');
+    ta.value = enhancedPrompts[type];
+    const counter = document.getElementById(type + '-char');
+    const max = type === 'voice' ? 2000 : 500;
+    counter.textContent = ta.value.length + ' / ' + max;
+  }
 
-// ─── PROGRESS HELPER ──────────────────────────
-function startProgress(type, durationMs) {
-  const bar = document.getElementById(type+'-prog-bar');
-  const pct = document.getElementById(type+'-prog-pct');
-  const wrap = document.getElementById('prog-'+type);
-  wrap.classList.add('on');
-  bar.style.width = '0%';
-  const start = Date.now();
-  const interval = setInterval(() => {
-    const elapsed = Date.now() - start;
-    const progress = Math.min(95, (elapsed / durationMs) * 100);
-    bar.style.width = progress + '%';
-    pct.textContent = Math.round(progress) + '%';
-    if (elapsed >= durationMs) clearInterval(interval);
-  }, 100);
-  return interval;
-}
-function endProgress(type, intervalId) {
-  clearInterval(intervalId);
-  const bar = document.getElementById(type+'-prog-bar');
-  const pct = document.getElementById(type+'-prog-pct');
-  const wrap = document.getElementById('prog-'+type);
-  bar.style.width = '100%'; pct.textContent = '100%';
-  setTimeout(() => { wrap.classList.remove('on'); bar.style.width='0%'; }, 700);
-}
+  // Generate (mock with shimmer + reveal)
+  function generate(type) {
+    const shimmer = document.getElementById('shimmer-' + type);
+    const placeholder = document.getElementById('placeholder-' + type);
+    const result = document.getElementById('result-' + type);
 
-// ─── IMAGE GENERATION (OpenAI DALL·E) ────────
-async function generateImage() {
-  if (!keys.openai) { toast('Add your OpenAI API key first ☝️'); return; }
-  const prompt = document.getElementById('img-prompt').value.trim();
-  if (!prompt) { toast('Enter a prompt first'); return; }
+    placeholder.style.display = 'none';
+    result.style.display = 'none';
+    shimmer.classList.add('show');
 
-  const style = getActiveChip('img-chips');
-  const fullPrompt = style ? prompt + ', ' + style : prompt;
-  const model = document.getElementById('img-model').value;
-  const size = document.getElementById('img-size').value;
-  const quality = document.getElementById('img-quality').value;
-  const imgStyle = document.getElementById('img-style').value;
+    const delay = type === 'vid' ? 3500 : type === 'voice' ? 2000 : 2800;
 
-  setBusy('img', true);
-  document.getElementById('empty-img').style.display = 'none';
-  document.getElementById('out-img').style.display = 'none';
-  document.getElementById('stag-img').classList.remove('on');
-  document.getElementById('sh-img').classList.add('on');
-  const progId = startProgress('img', 8000);
+    setTimeout(() => {
+      shimmer.classList.remove('show');
+      result.style.display = 'flex';
+      if (type === 'voice') setupWaveform();
+    }, delay);
+  }
 
-  try {
-    const body = {
-      model,
-      prompt: fullPrompt,
-      n: 1,
-      size,
-      response_format: 'url'
-    };
-    if (model === 'dall-e-3') {
-      body.quality = quality;
-      body.style = imgStyle;
-    }
-
-    const res = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + keys.openai
-      },
-      body: JSON.stringify(body)
+  // Waveform setup
+  function setupWaveform() {
+    const wf = document.getElementById('waveform');
+    wf.innerHTML = '';
+    const heights = [20,30,45,28,60,38,70,42,55,30,65,48,35,72,40,58,32,66,44,50,28,62,38,70,46,35,55,40,28,60,50,35];
+    heights.forEach((h, i) => {
+      const bar = document.createElement('div');
+      bar.className = 'wave-bar';
+      bar.style.height = h + 'px';
+      bar.style.animationDelay = (i * 0.04) + 's';
+      wf.appendChild(bar);
     });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || 'OpenAI error ' + res.status);
-
-    const url = data.data[0].url;
-    currentImgUrl = url;
-    endProgress('img', progId);
-    document.getElementById('sh-img').classList.remove('on');
-
-    const img = document.getElementById('out-img');
-    img.src = url;
-    img.style.display = 'block';
-    document.getElementById('stag-img').classList.add('on');
-    document.getElementById('dl-img-btn').disabled = false;
-    document.getElementById('copy-img-btn').disabled = false;
-
-    // Add to gallery
-    addImgToGallery(url, prompt);
-    toast('✓ Image generated!', false, true);
-
-  } catch (err) {
-    endProgress('img', progId);
-    document.getElementById('sh-img').classList.remove('on');
-    document.getElementById('empty-img').style.display = 'block';
-    toast('Image error: ' + err.message, true);
-  } finally {
-    setBusy('img', false);
   }
-}
 
-function downloadImage() {
-  if (!currentImgUrl) return;
-  const a = document.createElement('a');
-  a.href = currentImgUrl;
-  a.download = 'aura-image-' + Date.now() + '.png';
-  a.target = '_blank';
-  a.click();
-}
-function copyImgUrl() {
-  if (!currentImgUrl) return;
-  navigator.clipboard.writeText(currentImgUrl).then(() => toast('URL copied!', false, true));
-}
+  // Audio playback simulation
+  let playing = false;
+  let progress = 0;
+  let playInterval = null;
 
-// ─── VIDEO GENERATION (Runway Gen-3) ─────────
-async function generateVideo() {
-  if (!keys.runway) { toast('Add your Runway API key first ☝️'); return; }
-  const prompt = document.getElementById('vid-prompt').value.trim();
-  if (!prompt) { toast('Enter a prompt first'); return; }
+  function togglePlay() {
+    const btn = document.getElementById('play-btn');
+    const fill = document.getElementById('audio-fill');
+    const timeEl = document.getElementById('audio-time');
+    const bars = document.querySelectorAll('.wave-bar');
 
-  const mode = getActiveChip('vid-chips');
-  const duration = parseInt(document.getElementById('vid-duration').value);
-  const ratio = document.getElementById('vid-ratio').value;
+    playing = !playing;
+    btn.textContent = playing ? '⏸' : '▶';
 
-  // Clear previous
-  setBusy('vid', true);
-  document.getElementById('empty-vid').style.display = 'none';
-  document.getElementById('out-vid').style.display = 'none';
-  document.getElementById('out-vid').src = '';
-  document.getElementById('stag-vid').classList.remove('on');
-  document.getElementById('sh-vid').classList.add('on');
-  document.getElementById('vid-polling-status').classList.remove('on');
-
-  const progId = startProgress('vid', 5000);
-  document.getElementById('vid-prog-lbl').textContent = 'Submitting job…';
-
-  try {
-    let imageUrl = null;
-    if (mode === 'img2vid') {
-      const file = document.getElementById('vid-img-file').files[0];
-      if (!file) { throw new Error('Upload a source image for Image → Video mode'); }
-      imageUrl = await fileToBase64DataUrl(file);
+    if (playing) {
+      bars.forEach(b => b.classList.add('playing'));
+      playInterval = setInterval(() => {
+        progress += 0.7;
+        if (progress >= 100) { progress = 0; playing = false; btn.textContent = '▶'; bars.forEach(b => b.classList.remove('playing')); clearInterval(playInterval); }
+        fill.style.width = progress + '%';
+        const secs = Math.floor(progress * 0.14);
+        timeEl.textContent = '0:' + String(secs).padStart(2,'0') + ' / 0:14';
+      }, 100);
+    } else {
+      bars.forEach(b => b.classList.remove('playing'));
+      clearInterval(playInterval);
     }
-
-    const body = {
-      model: 'gen3a_turbo',
-      promptText: prompt,
-      duration,
-      ratio
-    };
-    if (imageUrl) {
-      body.promptImage = imageUrl;
-    }
-
-    const res = await fetch('https://api.dev.runwayml.com/v1/image_to_video', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + keys.runway,
-        'X-Runway-Version': '2024-11-06'
-      },
-      body: JSON.stringify(body)
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || data.message || 'Runway error ' + res.status);
-
-    const taskId = data.id;
-    endProgress('vid', progId);
-    document.getElementById('sh-vid').classList.remove('on');
-    document.getElementById('vid-polling-status').classList.add('on');
-
-    // Poll for result
-    let elapsed = 0;
-    if (runwayPollInterval) clearInterval(runwayPollInterval);
-    runwayPollInterval = setInterval(async () => {
-      elapsed += 3;
-      document.getElementById('vid-eta').textContent = 'Elapsed: ' + elapsed + 's';
-      try {
-        const poll = await fetch('https://api.dev.runwayml.com/v1/tasks/' + taskId, {
-          headers: {
-            'Authorization': 'Bearer ' + keys.runway,
-            'X-Runway-Version': '2024-11-06'
-          }
-        });
-        const taskData = await poll.json();
-        if (taskData.status === 'SUCCEEDED') {
-          clearInterval(runwayPollInterval);
-          const videoUrl = taskData.output?.[0];
-          if (!videoUrl) throw new Error('No video output from Runway');
-          currentVideoUrl = videoUrl;
-          document.getElementById('vid-polling-status').classList.remove('on');
-          const vid = document.getElementById('out-vid');
-          vid.src = videoUrl;
-          vid.style.display = 'block';
-          document.getElementById('stag-vid').classList.add('on');
-          document.getElementById('dl-vid-btn').disabled = false;
-          setBusy('vid', false);
-          toast('✓ Video ready!', false, true);
-        } else if (taskData.status === 'FAILED') {
-          clearInterval(runwayPollInterval);
-          throw new Error('Runway task failed: ' + (taskData.failure || 'unknown error'));
-        }
-      } catch(pollErr) {
-        if (pollErr.message.includes('FAILED') || pollErr.message.includes('No video')) {
-          clearInterval(runwayPollInterval);
-          document.getElementById('vid-polling-status').classList.remove('on');
-          document.getElementById('empty-vid').style.display = 'block';
-          toast('Video error: ' + pollErr.message, true);
-          setBusy('vid', false);
-        }
-      }
-    }, 3000);
-
-  } catch (err) {
-    endProgress('vid', progId);
-    document.getElementById('sh-vid').classList.remove('on');
-    document.getElementById('vid-polling-status').classList.remove('on');
-    document.getElementById('empty-vid').style.display = 'block';
-    toast('Video error: ' + err.message, true);
-    setBusy('vid', false);
   }
-}
 
-function downloadVideo() {
-  if (!currentVideoUrl) return;
-  const a = document.createElement('a');
-  a.href = currentVideoUrl;
-  a.download = 'aura-video-' + Date.now() + '.mp4';
-  a.target = '_blank';
-  a.click();
-}
-
-// ─── VOICE GENERATION (ElevenLabs) ───────────
-async function generateVoice() {
-  if (!keys.elevenlabs) { toast('Add your ElevenLabs API key first ☝️'); return; }
-  const text = document.getElementById('voice-prompt').value.trim();
-  if (!text) { toast('Enter a script first'); return; }
-
-  const voiceId = document.getElementById('voice-id').value;
-  const modelId = document.getElementById('voice-model').value;
-  const stability = document.getElementById('stab-range').value / 100;
-  const similarity = document.getElementById('sim-range').value / 100;
-  const styleEx = document.getElementById('style-range').value / 100;
-  const toneChip = getActiveChip('voice-chips');
-  const fullText = toneChip ? text + toneChip : text;
-
-  setBusy('voice', true);
-  document.getElementById('empty-voice').style.display = 'none';
-  document.getElementById('out-voice').style.display = 'none';
-  document.getElementById('stag-voice').classList.remove('on');
-  document.getElementById('sh-voice').classList.add('on');
-  const progId = startProgress('voice', 4000);
-
-  try {
-    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'audio/mpeg',
-        'Content-Type': 'application/json',
-        'xi-api-key': keys.elevenlabs
-      },
-      body: JSON.stringify({
-        text: fullText,
-        model_id: modelId,
-        voice_settings: {
-          stability,
-          similarity_boost: similarity,
-          style: styleEx,
-          use_speaker_boost: true
-        }
-      })
-    });
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail?.message || errData.detail || 'ElevenLabs error ' + res.status);
-    }
-
-    const blob = await res.blob();
-    currentAudioBlob = blob;
-    const url = URL.createObjectURL(blob);
-
-    endProgress('voice', progId);
-    document.getElementById('sh-voice').classList.remove('on');
-
-    // Set up audio element
-    if (audioEl) { audioEl.pause(); audioEl = null; }
-    audioEl = new Audio(url);
-    audioEl.addEventListener('timeupdate', updateAudioProgress);
-    audioEl.addEventListener('ended', () => {
-      audioPlaying = false;
-      document.getElementById('play-btn').textContent = '▶';
-      document.querySelectorAll('.wb').forEach(b => b.classList.remove('anim'));
-    });
-
-    document.getElementById('out-voice').style.display = 'flex';
-    document.getElementById('stag-voice').classList.add('on');
-    document.getElementById('dl-voice-btn').disabled = false;
-    document.getElementById('copy-voice-btn').disabled = false;
-
-    addVoiceToGallery(text, url);
-    toast('✓ Voice generated!', false, true);
-
-  } catch (err) {
-    endProgress('voice', progId);
-    document.getElementById('sh-voice').classList.remove('on');
-    document.getElementById('empty-voice').style.display = 'block';
-    toast('Voice error: ' + err.message, true);
-  } finally {
-    setBusy('voice', false);
+  function downloadResult() {
+    alert('In a live version, this would download your generated image. Connect an API like DALL·E to enable real generation!');
   }
-}
-
-function togglePlay() {
-  if (!audioEl) return;
-  if (audioPlaying) {
-    audioEl.pause(); audioPlaying = false;
-    document.getElementById('play-btn').textContent = '▶';
-    document.querySelectorAll('.wb').forEach(b => b.classList.remove('anim'));
-  } else {
-    audioEl.play(); audioPlaying = true;
-    document.getElementById('play-btn').textContent = '⏸';
-    document.querySelectorAll('.wb').forEach(b => b.classList.add('anim'));
-  }
-}
-function updateAudioProgress() {
-  if (!audioEl || !audioEl.duration) return;
-  const pct = (audioEl.currentTime / audioEl.duration) * 100;
-  document.getElementById('a-fill').style.width = pct + '%';
-  const t = formatTime(audioEl.currentTime);
-  const d = formatTime(audioEl.duration);
-  document.getElementById('a-time').textContent = t + ' / ' + d;
-}
-function seekAudio(e) {
-  if (!audioEl || !audioEl.duration) return;
-  const bar = e.currentTarget;
-  const rect = bar.getBoundingClientRect();
-  const ratio = (e.clientX - rect.left) / rect.width;
-  audioEl.currentTime = ratio * audioEl.duration;
-}
-function formatTime(s) {
-  const m = Math.floor(s / 60);
-  const sec = Math.floor(s % 60);
-  return m + ':' + String(sec).padStart(2,'0');
-}
-function downloadAudio() {
-  if (!currentAudioBlob) return;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(currentAudioBlob);
-  a.download = 'aura-voice-' + Date.now() + '.mp3';
-  a.click();
-}
-
-// ─── WAVEFORM ─────────────────────────────────
-function buildWaveform() {
-  const wf = document.getElementById('waveform');
-  if (!wf) return;
-  const heights = [18,28,42,26,58,36,68,40,52,28,62,46,34,70,38,56,30,64,42,48,26,60,36,68,44,32,52,38,26,58,48,32];
-  heights.forEach((h, i) => {
-    const b = document.createElement('div');
-    b.className = 'wb';
-    b.style.height = h + 'px';
-    b.style.animationDelay = (i * 0.045) + 's';
-    wf.appendChild(b);
-  });
-}
-
-// ─── GALLERY ─────────────────────────────────
-function addImgToGallery(url, prompt) {
-  galleryImg.unshift({url, prompt, ts: Date.now()});
-  if (galleryImg.length > 12) galleryImg.pop();
-  renderGallery('img');
-}
-function addVoiceToGallery(text, url) {
-  galleryVoice.unshift({text, url, ts: Date.now()});
-  if (galleryVoice.length > 8) galleryVoice.pop();
-  renderGallery('voice');
-}
-function addToGallery(type) {
-  if (type === 'voice' && currentAudioBlob) {
-    const url = URL.createObjectURL(currentAudioBlob);
-    const text = document.getElementById('voice-prompt').value.trim();
-    addVoiceToGallery(text, url);
-  }
-}
-function renderGallery(type) {
-  if (type === 'img') {
-    const grid = document.getElementById('gal-img');
-    if (!galleryImg.length) { grid.innerHTML = '<p class="gal-empty">Generated images will appear here</p>'; return; }
-    grid.innerHTML = galleryImg.map(item => `
-      <div class="gal-item" onclick="window.open('${item.url}','_blank')">
-        <img src="${item.url}" alt="${item.prompt.slice(0,40)}"/>
-        <div class="gal-overlay"><span class="gal-label">${item.prompt.slice(0,55)}${item.prompt.length>55?'…':''}</span></div>
-        <span class="gal-type-badge badge-img">IMG</span>
-      </div>
-    `).join('');
-  } else {
-    const grid = document.getElementById('gal-voice');
-    if (!galleryVoice.length) { grid.innerHTML = '<p class="gal-empty">Generated audio clips will appear here</p>'; return; }
-    grid.innerHTML = galleryVoice.map((item,i) => `
-      <div class="gal-item" style="aspect-ratio:unset;min-height:90px;display:flex;align-items:center;justify-content:center;padding:14px;cursor:pointer"
-        onclick="playGalleryAudio('${item.url}')">
-        <div style="text-align:center">
-          <div style="font-size:1.6rem;margin-bottom:8px">🎙</div>
-          <p style="font-size:0.7rem;color:var(--muted2);line-height:1.4">${item.text.slice(0,50)}${item.text.length>50?'…':''}</p>
-        </div>
-        <span class="gal-type-badge badge-voice">VOICE</span>
-      </div>
-    `).join('');
-  }
-}
-function playGalleryAudio(url) {
-  new Audio(url).play();
-}
-function clearGallery(type) {
-  if (type === 'img') { galleryImg = []; renderGallery('img'); }
-  else { galleryVoice = []; renderGallery('voice'); }
-}
-function loadGallery() {
-  renderGallery('img');
-  renderGallery('voice');
-}
-
-// ─── BUSY STATE ───────────────────────────────
-function setBusy(type, busy) {
-  const btn = document.getElementById('gen-'+type+'-btn');
-  const spinner = document.getElementById(type+'-spinner');
-  const txt = document.getElementById(type+'-btn-txt');
-  btn.disabled = busy;
-  spinner.style.display = busy ? 'block' : 'none';
-  if (!busy) {
-    const labels = {img:'✦ Generate Image', vid:'▶ Generate Video', voice:'🎙 Generate Voice'};
-    txt.textContent = labels[type];
-  } else {
-    const labels = {img:'Generating…', vid:'Processing…', voice:'Synthesizing…'};
-    txt.textContent = labels[type];
-  }
-}
-
-// ─── TOAST ────────────────────────────────────
-let toastTimer = null;
-function toast(msg, isError=false, isOk=false) {
-  const el = document.getElementById('toast');
-  el.textContent = (isError ? '⚠ ' : '') + msg;
-  el.className = 'toast' + (isOk ? ' toast-ok' : '') + ' on';
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.classList.remove('on'); }, 4000);
-}
-
-// ─── UTILS ────────────────────────────────────
-function fileToBase64DataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 </script>
 </body>
 </html>
