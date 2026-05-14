@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AURA — AI Media Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #07080d;
+    --surface: #0f1118;
+    --surface2: #161921;
+    --border: #1f2330;
+    --accent-img: #00e5c8;
+    --accent-vid: #ff5f57;
+    --accent-voice: #a78bfa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --card: #12151f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Atmospheric background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 15% 20%, rgba(0,229,200,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 35% at 85% 80%, rgba(167,139,250,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, rgba(255,95,87,0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Noise overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .container { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* Header */
+  header {
+    padding: 28px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--accent-img), var(--accent-voice));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo span {
+    font-weight: 300;
+    font-family: 'DM Sans', sans-serif;
+    font-style: italic;
+    font-size: 0.75rem;
+    background: none;
+    -webkit-text-fill-color: var(--muted);
+    color: var(--muted);
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 100px;
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 60px 0 48px;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--accent-img) 0%, var(--accent-voice) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 1.05rem;
+    font-weight: 300;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Tab nav */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px;
+    width: fit-content;
+    margin: 0 auto 40px;
+  }
+
+  .tab-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.22s ease;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+  }
+
+  .tab-btn .icon { font-size: 1rem; }
+
+  .tab-btn:hover { color: var(--text); }
+
+  .tab-btn.active-img {
+    background: rgba(0,229,200,0.12);
+    color: var(--accent-img);
+    box-shadow: 0 0 0 1px rgba(0,229,200,0.25);
+  }
+
+  .tab-btn.active-vid {
+    background: rgba(255,95,87,0.12);
+    color: var(--accent-vid);
+    box-shadow: 0 0 0 1px rgba(255,95,87,0.25);
+  }
+
+  .tab-btn.active-voice {
+    background: rgba(167,139,250,0.12);
+    color: var(--accent-voice);
+    box-shadow: 0 0 0 1px rgba(167,139,250,0.25);
+  }
+
+  /* Panel */
+  .panel { display: none; animation: fadeUp 0.3s ease; }
+  .panel.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 680px) {
+    .panel-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .card-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Prompt area */
+  .prompt-area {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+
+  .prompt-area:focus-within { border-color: rgba(255,255,255,0.15); }
+
+  textarea {
+    width: 100%;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    resize: none;
+    line-height: 1.6;
+    min-height: 80px;
+  }
+
+  textarea::placeholder { color: var(--muted); }
+
+  .prompt-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .char-count { font-size: 0.75rem; color: var(--muted); }
+
+  .enhance-btn {
+    font-size: 0.75rem;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .enhance-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  /* Settings row */
+  .settings-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .setting-item label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-bottom: 5px;
+    letter-spacing: 0.04em;
+  }
+
+  select, .select-fake {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+
+  select:focus { border-color: rgba(255,255,255,0.15); }
+
+  /* Generate button */
+  .gen-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .gen-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.2s;
+  }
+
+  .gen-btn:hover::after { background: rgba(255,255,255,0.06); }
+
+  .gen-btn-img {
+    background: linear-gradient(135deg, #00b8a0, #00e5c8);
+    color: #041a17;
+  }
+
+  .gen-btn-vid {
+    background: linear-gradient(135deg, #d9473f, #ff5f57);
+    color: #1a0605;
+  }
+
+  .gen-btn-voice {
+    background: linear-gradient(135deg, #7c5fd4, #a78bfa);
+    color: #0e0a1a;
+  }
+
+  .gen-btn:active { transform: scale(0.98); }
+
+  /* Preview card */
+  .preview-card {
+    aspect-ratio: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .preview-card.video-preview { aspect-ratio: 16/9; }
+  .preview-card.voice-preview { aspect-ratio: unset; min-height: 180px; }
+
+  .preview-placeholder {
+    text-align: center;
+    padding: 20px;
+  }
+
+  .preview-placeholder .big-icon {
+    font-size: 2.4rem;
+    opacity: 0.2;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .preview-placeholder p {
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  /* Generated image simulation */
+  .gen-result {
+    display: none;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gen-result.show { display: flex; }
+
+  /* Shimmer loader */
+  .shimmer {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, var(--surface2) 25%, var(--surface) 50%, var(--surface2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 14px;
+  }
+
+  .shimmer.show { display: block; }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Tags */
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .tag {
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s;
+    background: var(--surface2);
+  }
+
+  .tag:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  .tag.active-tag-img { color: var(--accent-img); border-color: rgba(0,229,200,0.35); background: rgba(0,229,200,0.06); }
+  .tag.active-tag-vid { color: var(--accent-vid); border-color: rgba(255,95,87,0.35); background: rgba(255,95,87,0.06); }
+  .tag.active-tag-voice { color: var(--accent-voice); border-color: rgba(167,139,250,0.35); background: rgba(167,139,250,0.06); }
+
+  /* Slider */
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent-voice);
+    cursor: pointer;
+  }
+
+  /* Voice waveform */
+  .waveform {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 20px;
+    justify-content: center;
+  }
+
+  .wave-bar {
+    width: 3px;
+    border-radius: 3px;
+    background: var(--accent-voice);
+    opacity: 0.5;
+    transition: height 0.1s;
+  }
+
+  .wave-bar.playing {
+    animation: wave 0.8s ease-in-out infinite;
+  }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.4); opacity: 0.3; }
+    50% { transform: scaleY(1); opacity: 0.9; }
+  }
+
+  /* Audio controls */
+  .audio-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 20px 20px;
+  }
+
+  .play-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(167,139,250,0.15);
+    border: 1px solid rgba(167,139,250,0.3);
+    color: var(--accent-voice);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .play-btn:hover { background: rgba(167,139,250,0.25); }
+
+  .audio-progress {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .audio-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent-voice);
+    border-radius: 3px;
+    transition: width 0.1s linear;
+  }
+
+  .audio-time { font-size: 0.72rem; color: var(--muted); flex-shrink: 0; }
+
+  /* Gallery */
+  .gallery {
+    margin-top: 40px;
+    padding-bottom: 60px;
+  }
+
+  .gallery-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .gallery-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  @media (max-width: 600px) {
+    .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .gallery-item {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: saturate(0.9) brightness(0.9);
+    transition: filter 0.3s;
+  }
+
+  .gallery-item:hover img { filter: saturate(1.1) brightness(1); }
+
+  .gallery-item-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .gallery-item:hover .gallery-item-overlay { opacity: 1; }
+
+  .gallery-item-label {
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.3;
+  }
+
+  /* Status pill */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 100px;
+    background: rgba(0,229,200,0.1);
+    color: var(--accent-img);
+    border: 1px solid rgba(0,229,200,0.2);
+    margin-bottom: 6px;
+  }
+
+  .status-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 32px 0;
+  }
+
+  /* Generated image placeholders using CSS art */
+  .css-img-1 { background: linear-gradient(135deg, #1a0a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%); }
+  .css-img-2 { background: linear-gradient(135deg, #0d1117 0%, #161b22 30%, #21262d 60%, #30363d 100%); }
+  .css-img-3 { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 30%, #0f3460 60%, #e94560 100%); }
+  .css-img-4 { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 30%, #2d2d2d 60%, #ff6b35 100%); }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="logo">AURA <span>AI Media Studio</span></div>
+    <div class="badge">Beta</div>
+  </header>
+
+  <div class="hero">
+    <h1>Create anything.<br><em>Instantly.</em></h1>
+    <p>Generate AI images, videos, and voice from simple text prompts — all in one place.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active-img" onclick="switchTab('img', this)">
+      <span class="icon">🖼</span> Image
+    </button>
+    <button class="tab-btn" onclick="switchTab('vid', this)">
+      <span class="icon">🎬</span> Video
+    </button>
+    <button class="tab-btn" onclick="switchTab('voice', this)">
+      <span class="icon">🎙</span> Voice
+    </button>
+  </div>
+
+  <!-- IMAGE PANEL -->
+  <div class="panel active" id="panel-img">
+    <div class="panel-grid">
+      <div>
+        <div class="card">
+          <div class="card-label">Prompt</div>
+
+          <div class="tag-row">
+            <span class="tag active-tag-img" onclick="toggleTag(this,'img')">Photorealistic</span>
+            <span class="tag" onclick="toggleTag(this,'img')">Cinematic</span>
+            <span class="tag" onclick="toggleTag(this,'img')">Illustration</span>
+            <span class="tag" onclick="toggleTag(this,'img')">3D Render</span>
+            <span class="tag" onclick="toggleTag(this,'img')">Anime</span>
+            <span class="tag" onclick="toggleTag(this,'img')">Watercolor</span>
+          </div>
+
+          <div class="prompt-area">
+            <textarea id="img-prompt" rows="4" placeholder="A lone astronaut standing on a crimson alien planet, golden hour light, dramatic clouds, ultra-detailed, cinematic lens flare..."></textarea>
+            <div class="prompt-footer">
+              <span class="char-count" id="img-char">0 / 500</span>
+              <button class="enhance-btn" onclick="enhancePrompt('img')">✨ Enhance</button>
+            </div>
+          </div>
+
+          <div class="settings-row">
+            <div class="setting-item">
+              <label>Model</label>
+              <select>
+                <option>DALL·E 3</option>
+                <option>Stable Diffusion XL</option>
+                <option>Midjourney v7</option>
+                <option>Flux Pro</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Aspect Ratio</label>
+              <select>
+                <option>1:1 Square</option>
+                <option>16:9 Wide</option>
+                <option>9:16 Portrait</option>
+                <option>4:3 Classic</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Quality</label>
+              <select>
+                <option>HD</option>
+                <option>Standard</option>
+                <option>Ultra HD</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Count</label>
+              <select>
+                <option>1 image</option>
+                <option>2 images</option>
+                <option>4 images</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="gen-btn gen-btn-img" onclick="generate('img')">
+            <span>✦</span> Generate Image
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="preview-card" id="preview-img">
+          <div class="shimmer" id="shimmer-img"></div>
+          <div class="preview-placeholder" id="placeholder-img">
+            <span class="big-icon">🖼</span>
+            <p>Your generated image<br>will appear here</p>
+          </div>
+          <div class="gen-result" id="result-img" style="background: linear-gradient(135deg, #0d0d1a 0%, #1a0a2e 30%, #0f3460 70%, #2d1b5e 100%); border-radius: 14px; display:none; flex-direction:column; align-items:center; justify-content:center;">
+            <div style="text-align:center; padding:20px;">
+              <div style="font-size:3rem; margin-bottom:12px; filter: drop-shadow(0 0 20px rgba(0,229,200,0.5));">🌌</div>
+              <p style="font-size:0.8rem; color:rgba(255,255,255,0.5); max-width:200px; line-height:1.5;">Photorealistic astronaut on alien terrain — generated in 4.2s</p>
+              <div class="status-pill" style="margin-top:12px; display:inline-flex;">
+                <span class="status-dot"></span> Ready to download
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="enhance-btn" style="flex:1; padding:10px;" onclick="downloadResult()">⬇ Download</button>
+          <button class="enhance-btn" style="flex:1; padding:10px;" onclick="generate('img')">↻ Regenerate</button>
+          <button class="enhance-btn" style="padding:10px 14px;">⋯</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="gallery">
+      <div class="gallery-header">
+        <span class="gallery-title">Recent Generations</span>
+        <button class="enhance-btn">View all</button>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-item">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0a2e,#0f3460,#533483);"></div>
+          <div class="gallery-item-overlay"><span class="gallery-item-label">Cosmic nebula, deep space photography</span></div>
+        </div>
+        <div class="gallery-item">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#0a1628,#1a3a5c,#2d6a8c,#4a9aba);"></div>
+          <div class="gallery-item-overlay"><span class="gallery-item-label">Underwater city at dusk</span></div>
+        </div>
+        <div class="gallery-item">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0505,#3d0f0f,#7a1f1f,#d4472d);"></div>
+          <div class="gallery-item-overlay"><span class="gallery-item-label">Ancient ruins at sunset</span></div>
+        </div>
+        <div class="gallery-item">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#050a05,#0d1f0d,#1a3d1a,#2d6b2d);"></div>
+          <div class="gallery-item-overlay"><span class="gallery-item-label">Enchanted forest, bioluminescent</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIDEO PANEL -->
+  <div class="panel" id="panel-vid">
+    <div class="panel-grid">
+      <div>
+        <div class="card">
+          <div class="card-label">Prompt</div>
+
+          <div class="tag-row">
+            <span class="tag active-tag-vid" onclick="toggleTag(this,'vid')">Text to Video</span>
+            <span class="tag" onclick="toggleTag(this,'vid')">Image to Video</span>
+            <span class="tag" onclick="toggleTag(this,'vid')">Video Extend</span>
+          </div>
+
+          <div class="prompt-area">
+            <textarea id="vid-prompt" rows="4" placeholder="A majestic eagle soaring over mountain peaks, slow motion, golden hour, cinematic tracking shot, 4K quality..."></textarea>
+            <div class="prompt-footer">
+              <span class="char-count" id="vid-char">0 / 500</span>
+              <button class="enhance-btn" onclick="enhancePrompt('vid')">✨ Enhance</button>
+            </div>
+          </div>
+
+          <div class="settings-row">
+            <div class="setting-item">
+              <label>Model</label>
+              <select>
+                <option>Runway Gen-4</option>
+                <option>Kling AI</option>
+                <option>Luma Dream Machine</option>
+                <option>Pika 2.0</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Duration</label>
+              <select>
+                <option>5 seconds</option>
+                <option>10 seconds</option>
+                <option>15 seconds</option>
+                <option>30 seconds</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Resolution</label>
+              <select>
+                <option>1080p</option>
+                <option>720p</option>
+                <option>4K (slow)</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Motion</label>
+              <select>
+                <option>Smooth</option>
+                <option>Dynamic</option>
+                <option>Slow Motion</option>
+                <option>Hyperlapse</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="gen-btn gen-btn-vid" onclick="generate('vid')">
+            <span>▶</span> Generate Video
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="preview-card video-preview" id="preview-vid">
+          <div class="shimmer" id="shimmer-vid"></div>
+          <div class="preview-placeholder" id="placeholder-vid">
+            <span class="big-icon">🎬</span>
+            <p>Your generated video<br>will appear here</p>
+          </div>
+          <div class="gen-result" id="result-vid" style="background: linear-gradient(135deg, #1a0505 0%, #3d0000 40%, #800000 70%, #cc3300 100%); border-radius: 14px; display:none; flex-direction:column; align-items:center; justify-content:center;">
+            <div style="text-align:center; padding:20px;">
+              <div style="font-size:3rem; margin-bottom:12px; filter: drop-shadow(0 0 20px rgba(255,95,87,0.5));">🦅</div>
+              <p style="font-size:0.8rem; color:rgba(255,255,255,0.5); max-width:200px; line-height:1.5;">5-second cinematic eagle flight — generated in 38s</p>
+              <div class="status-pill" style="margin-top:12px; display:inline-flex; background:rgba(255,95,87,0.1); color:var(--accent-vid); border-color:rgba(255,95,87,0.2);">
+                <span class="status-dot" style="background:var(--accent-vid);"></span> Ready to export
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="enhance-btn" style="flex:1; padding:10px;">⬇ Export MP4</button>
+          <button class="enhance-btn" style="flex:1; padding:10px;" onclick="generate('vid')">↻ Regenerate</button>
+          <button class="enhance-btn" style="padding:10px 14px;">+ Audio</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VOICE PANEL -->
+  <div class="panel" id="panel-voice">
+    <div class="panel-grid">
+      <div>
+        <div class="card">
+          <div class="card-label">Script</div>
+
+          <div class="tag-row">
+            <span class="tag active-tag-voice" onclick="toggleTag(this,'voice')">Narration</span>
+            <span class="tag" onclick="toggleTag(this,'voice')">Dialogue</span>
+            <span class="tag" onclick="toggleTag(this,'voice')">Advertisement</span>
+            <span class="tag" onclick="toggleTag(this,'voice')">Meditation</span>
+          </div>
+
+          <div class="prompt-area">
+            <textarea id="voice-prompt" rows="4" placeholder="Welcome to the future. A place where creativity knows no limits, and imagination becomes reality at the speed of thought..."></textarea>
+            <div class="prompt-footer">
+              <span class="char-count" id="voice-char">0 / 2000</span>
+              <button class="enhance-btn" onclick="enhancePrompt('voice')">✨ Polish</button>
+            </div>
+          </div>
+
+          <div class="settings-row">
+            <div class="setting-item">
+              <label>Voice</label>
+              <select>
+                <option>Aria — Warm Female</option>
+                <option>Marcus — Deep Male</option>
+                <option>Luna — Bright Female</option>
+                <option>Caden — Friendly Male</option>
+                <option>Sage — Neutral</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label>Language</label>
+              <select>
+                <option>English (US)</option>
+                <option>English (UK)</option>
+                <option>Spanish</option>
+                <option>French</option>
+                <option>Japanese</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="card-label" style="margin-bottom:10px;">Voice Settings</div>
+
+          <div style="margin-bottom:12px;">
+            <label style="font-size:0.72rem; color:var(--muted); display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span>Speed</span><span id="speed-val">1.0×</span>
+            </label>
+            <input type="range" min="0.5" max="2" step="0.1" value="1" oninput="document.getElementById('speed-val').textContent=this.value+'×'">
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <label style="font-size:0.72rem; color:var(--muted); display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span>Stability</span><span id="stability-val">75%</span>
+            </label>
+            <input type="range" min="0" max="100" step="5" value="75" oninput="document.getElementById('stability-val').textContent=this.value+'%'">
+          </div>
+
+          <button class="gen-btn gen-btn-voice" onclick="generate('voice')">
+            <span>🎙</span> Generate Voice
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="preview-card voice-preview" id="preview-voice" style="flex-direction:column; justify-content:center; padding:0;">
+          <div class="shimmer" id="shimmer-voice"></div>
+          <div class="preview-placeholder" id="placeholder-voice">
+            <span class="big-icon">🎙</span>
+            <p>Your generated audio<br>will appear here</p>
+          </div>
+          <div class="gen-result" id="result-voice" style="display:none; flex-direction:column; width:100%;">
+            <div class="waveform" id="waveform">
+              <!-- bars inserted by JS -->
+            </div>
+            <div class="audio-controls">
+              <button class="play-btn" id="play-btn" onclick="togglePlay()">▶</button>
+              <div class="audio-progress">
+                <div class="audio-fill" id="audio-fill"></div>
+              </div>
+              <span class="audio-time" id="audio-time">0:00 / 0:14</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="enhance-btn" style="flex:1; padding:10px;">⬇ Download MP3</button>
+          <button class="enhance-btn" style="flex:1; padding:10px;" onclick="generate('voice')">↻ Regenerate</button>
+          <button class="enhance-btn" style="padding:10px 14px;">+ to Video</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Tab switching
+  function switchTab(type, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('active-img', 'active-vid', 'active-voice');
+    });
+    document.getElementById('panel-' + type).classList.add('active');
+    btn.classList.add('active-' + type);
+  }
+
+  // Char counters
+  ['img', 'vid', 'voice'].forEach(type => {
+    const ta = document.getElementById(type + '-prompt');
+    const counter = document.getElementById(type + '-char');
+    if (!ta || !counter) return;
+    ta.addEventListener('input', () => {
+      const max = type === 'voice' ? 2000 : 500;
+      counter.textContent = ta.value.length + ' / ' + max;
+    });
+  });
+
+  // Tags
+  function toggleTag(el, type) {
+    const activeClass = 'active-tag-' + type;
+    const siblings = el.parentElement.querySelectorAll('.tag');
+    siblings.forEach(s => s.classList.remove(activeClass));
+    el.classList.add(activeClass);
+  }
+
+  // Enhance prompt (mock)
+  const enhancedPrompts = {
+    img: "A lone astronaut in a weathered spacesuit standing on a crimson alien plateau, twin moons rising on the horizon, volumetric god rays piercing through amber clouds, Hasselblad medium format, f/2.8, golden hour, ultra-detailed surface textures, cinematic lens flare, award-winning photography",
+    vid: "A majestic bald eagle soaring in slow motion over snow-capped mountain peaks, dynamic thermal air currents visible, late afternoon golden hour light casting long shadows, smooth cinematic tracking shot from below, 24fps with 180° shutter, 4K RAW footage, National Geographic style",
+    voice: "Welcome to the future — a place where human creativity finds no limits, where imagination becomes reality at the speed of thought. Tonight, we stand at the threshold of a new era, one defined not by what machines replace, but by what they help us become."
+  };
+
+  function enhancePrompt(type) {
+    const ta = document.getElementById(type + '-prompt');
+    ta.value = enhancedPrompts[type];
+    const counter = document.getElementById(type + '-char');
+    const max = type === 'voice' ? 2000 : 500;
+    counter.textContent = ta.value.length + ' / ' + max;
+  }
+
+  // Generate (mock with shimmer + reveal)
+  function generate(type) {
+    const shimmer = document.getElementById('shimmer-' + type);
+    const placeholder = document.getElementById('placeholder-' + type);
+    const result = document.getElementById('result-' + type);
+
+    placeholder.style.display = 'none';
+    result.style.display = 'none';
+    shimmer.classList.add('show');
+
+    const delay = type === 'vid' ? 3500 : type === 'voice' ? 2000 : 2800;
+
+    setTimeout(() => {
+      shimmer.classList.remove('show');
+      result.style.display = 'flex';
+      if (type === 'voice') setupWaveform();
+    }, delay);
+  }
+
+  // Waveform setup
+  function setupWaveform() {
+    const wf = document.getElementById('waveform');
+    wf.innerHTML = '';
+    const heights = [20,30,45,28,60,38,70,42,55,30,65,48,35,72,40,58,32,66,44,50,28,62,38,70,46,35,55,40,28,60,50,35];
+    heights.forEach((h, i) => {
+      const bar = document.createElement('div');
+      bar.className = 'wave-bar';
+      bar.style.height = h + 'px';
+      bar.style.animationDelay = (i * 0.04) + 's';
+      wf.appendChild(bar);
+    });
+  }
+
+  // Audio playback simulation
+  let playing = false;
+  let progress = 0;
+  let playInterval = null;
+
+  function togglePlay() {
+    const btn = document.getElementById('play-btn');
+    const fill = document.getElementById('audio-fill');
+    const timeEl = document.getElementById('audio-time');
+    const bars = document.querySelectorAll('.wave-bar');
+
+    playing = !playing;
+    btn.textContent = playing ? '⏸' : '▶';
+
+    if (playing) {
+      bars.forEach(b => b.classList.add('playing'));
+      playInterval = setInterval(() => {
+        progress += 0.7;
+        if (progress >= 100) { progress = 0; playing = false; btn.textContent = '▶'; bars.forEach(b => b.classList.remove('playing')); clearInterval(playInterval); }
+        fill.style.width = progress + '%';
+        const secs = Math.floor(progress * 0.14);
+        timeEl.textContent = '0:' + String(secs).padStart(2,'0') + ' / 0:14';
+      }, 100);
+    } else {
+      bars.forEach(b => b.classList.remove('playing'));
+      clearInterval(playInterval);
+    }
+  }
+
+  function downloadResult() {
+    alert('In a live version, this would download your generated image. Connect an API like DALL·E to enable real generation!');
+  }
+</script>
+</body>
+</html>
